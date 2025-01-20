@@ -12,10 +12,15 @@ CENTER = np.array([WIDTH // 2, HEIGHT // 2])
 
 # Perspective scaling factor
 PERSPECTIVE_SCALE = 500
-
-class Cube:
-    def __init__(self, size, center):
+class PhysicsObject:
+    def __init__(self, center, velocity):
         self.center = np.array(center)
+        self.velocity = np.array(velocity)
+    def update_position(self):
+        self.center += self.velocity
+class Cube(PhysicsObject):
+    def __init__(self, size, center, velocity):
+        super().__init__(center, velocity)
         half_size = size / 2
         self.vertices = np.array([
             [center[0] - half_size, center[1] - half_size, center[2] - half_size],
@@ -38,15 +43,16 @@ class Cube:
         return edges
 
     def draw(self, screen, angle_x, angle_y, angle_z, camera_pos):
+        self.update_position()
         relative_vertices = self.vertices - self.center
         rotated = rotate(relative_vertices, angle_x, angle_y, angle_z)
         rotated += self.center  # Translate back
         relative_to_camera = rotated - camera_pos
         draw_edges(screen, relative_to_camera, self.edges)
 
-class Sphere:
-    def __init__(self, radius, center, num_latitude=10, num_longitude=20):
-        self.center = np.array(center)
+class Sphere(PhysicsObject):
+    def __init__(self, radius, center, velocity, num_latitude=10, num_longitude=20):
+        super().__init__(center, velocity)
         self.vertices = self._create_vertices(radius, num_latitude, num_longitude)
         self.edges = self._create_edges(num_latitude, num_longitude)
 
@@ -72,15 +78,16 @@ class Sphere:
         return edges
 
     def draw(self, screen, angle_x, angle_y, angle_z, camera_pos):
+        self.update_position()
         relative_vertices = self.vertices - self.center
         rotated = rotate(relative_vertices, angle_x, angle_y, angle_z)
         rotated += self.center  # Translate back
         relative_to_camera = rotated - camera_pos
         draw_edges(screen, relative_to_camera, self.edges)
 
-class Pyramid:
-    def __init__(self, size, center):
-        self.center = np.array(center)
+class Pyramid(PhysicsObject):
+    def __init__(self, size, center, velocity):
+        super().__init__(center, velocity)
         half_size = size / 2
         self.vertices = np.array([
             [center[0], center[1], center[2] + half_size],  # Apex
@@ -100,6 +107,7 @@ class Pyramid:
         return edges
 
     def draw(self, screen, angle_x, angle_y, angle_z, camera_pos):
+        self.update_position()
         relative_vertices = self.vertices - self.center
         rotated = rotate(relative_vertices, angle_x, angle_y, angle_z)
         rotated += self.center  # Translate back
@@ -165,10 +173,10 @@ def main():
     camera_pos = np.array([0, 0, -500])  # Camera starts far back
     center = np.array([0, 0, 0])
     camera_angle_x, camera_angle_y = 0, 0
-    
-    cube = Cube(cube_size, center)
-    sphere = Sphere(sphere_radius, center, num_latitude=10, num_longitude=20)
-    pyramid = Pyramid(pyramid_size, center)
+    velocity = np.array([1, 0, 0])
+    cube = Cube(cube_size, center, velocity)
+    sphere = Sphere(sphere_radius, center, velocity, num_latitude=10, num_longitude=20)
+    pyramid = Pyramid(pyramid_size, center, velocity)
 
     while True:
         for event in pygame.event.get():
@@ -192,9 +200,9 @@ def main():
             camera_pos[1] += 5  # Move down
         # Rotate camera
         if keys[pygame.K_UP]:
-            camera_angle_x += 0.01  # Rotate camera up
+            camera_angle_x -= 0.01  # Rotate camera up
         if keys[pygame.K_DOWN]:
-            camera_angle_x -= 0.01  # Rotate camera down
+            camera_angle_x += 0.01  # Rotate camera down
         if keys[pygame.K_LEFT]:
             camera_angle_y += 0.01  # Rotate camera left
         if keys[pygame.K_RIGHT]:
