@@ -161,10 +161,11 @@ def main():
     angle_x, angle_y, angle_z = 0, 0, 0
     cube_size = 200
     sphere_radius = 100
-    pyramid_size = 200
+    pyramid_size = 200  
     camera_pos = np.array([0, 0, -500])  # Camera starts far back
     center = np.array([0, 0, 0])
-
+    camera_angle_x, camera_angle_y = 0, 0
+    
     cube = Cube(cube_size, center)
     sphere = Sphere(sphere_radius, center, num_latitude=10, num_longitude=20)
     pyramid = Pyramid(pyramid_size, center)
@@ -185,10 +186,19 @@ def main():
             camera_pos[0] -= 5  # Move left
         if keys[pygame.K_d]:
             camera_pos[0] += 5  # Move right
-        if keys[pygame.K_UP]:
+        if keys[pygame.K_SPACE]:
             camera_pos[1] -= 5  # Move up
-        if keys[pygame.K_DOWN]:
+        if keys[pygame.K_LSHIFT]:
             camera_pos[1] += 5  # Move down
+        # Rotate camera
+        if keys[pygame.K_UP]:
+            camera_angle_x += 0.01  # Rotate camera up
+        if keys[pygame.K_DOWN]:
+            camera_angle_x -= 0.01  # Rotate camera down
+        if keys[pygame.K_LEFT]:
+            camera_angle_y += 0.01  # Rotate camera left
+        if keys[pygame.K_RIGHT]:
+            camera_angle_y -= 0.01  # Rotate camera right
 
         # Clear screen
         screen.fill((0, 0, 0))
@@ -198,10 +208,11 @@ def main():
         angle_y += 0.01
         angle_z += 0.01
 
+        rotated_camera_pos = rotate(camera_pos, camera_angle_x, camera_angle_y, 0)
         # Draw shapes
-        cube.draw(screen, angle_x, angle_y, angle_z, camera_pos)
-        sphere.draw(screen, angle_x, angle_y, angle_z, camera_pos)
-        pyramid.draw(screen, angle_x, angle_y, angle_z, camera_pos)
+        cube.draw(screen, angle_x, angle_y, angle_z, rotated_camera_pos)
+        sphere.draw(screen, angle_x, angle_y, angle_z, rotated_camera_pos)
+        pyramid.draw(screen, angle_x, angle_y, angle_z, rotated_camera_pos)
 
         pygame.display.flip()
         clock.tick(FPS)
