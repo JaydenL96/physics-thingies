@@ -49,7 +49,38 @@ class Cube(PhysicsObject):
         rotated += self.center  # Translate back
         relative_to_camera = rotated - camera_pos
         draw_edges(screen, relative_to_camera, self.edges)
+class Plane(PhysicsObject):
+    def __init__(self, WIDTH, HEIGHT, center, velocity):
+        super().__init__(center, velocity)
+        half_Width = WIDTH/ 2
+        half_Height = HEIGHT / 2
+        self.vertices = np.array([
+            [center[0] - half_Width, center[1] - half_Height, center[2] - half_Width],
+            [center[0] + half_Width, center[1] - half_Height, center[2] - half_Width],
+            [center[0] + half_Width, center[1] + half_Height, center[2] - half_Width],
+            [center[0] - half_Width, center[1] + half_Height, center[2] - half_Width],
+            [center[0] - half_Width, center[1] - half_Height, center[2] + half_Width],
+            [center[0] + half_Width, center[1] - half_Height, center[2] + half_Width],
+            [center[0] + half_Width, center[1] + half_Height, center[2] + half_Width],
+            [center[0] - half_Width, center[1] + half_Height, center[2] + half_Width]
+        ])
+        self.edges = self._create_edges()
 
+    def _create_edges(self):
+        edges = []
+        for i in range(4):
+            edges.append((i, (i + 1) % 4))  # Base edges
+            edges.append((i + 4, (i + 1) % 4 + 4))  # Top edges
+            edges.append((i, i + 4))  # Vertical edges
+        return edges
+
+    def draw(self, screen, angle_x, angle_y, angle_z, camera_pos):
+        self.update_position()
+        relative_vertices = self.vertices - self.center
+        rotated = rotate(relative_vertices, angle_x, angle_y, angle_z)
+        rotated += self.center  # Translate back
+        relative_to_camera = rotated - camera_pos
+        draw_edges(screen, relative_to_camera, self.edges)
 class Sphere(PhysicsObject):
     def __init__(self, radius, center, velocity, num_latitude=10, num_longitude=20):
         super().__init__(center, velocity)
@@ -167,14 +198,15 @@ def main():
     CENTER = np.array([WIDTH // 2, HEIGHT // 2])
     clock = pygame.time.Clock()
     angle_x, angle_y, angle_z = 0, 0, 0
-    cube_size = 200
+    #cube_size = 200
     sphere_radius = 100
-    pyramid_size = 200  
+    pyramid_size = 200
     camera_pos = np.array([0, 0, -500])  # Camera starts far back
     center = np.array([0, 0, 0])
     camera_angle_x, camera_angle_y = 0, 0
-    velocity = np.array([1, 0, 0])
-    cube = Cube(cube_size, center, velocity)
+    velocity = np.array([0, 0, 0])
+    #cube = Cube(cube_size, center, velocity)
+    cube = Plane(1000, 50, center, velocity)
     sphere = Sphere(sphere_radius, center, velocity, num_latitude=10, num_longitude=20)
     pyramid = Pyramid(pyramid_size, center, velocity)
 
@@ -218,7 +250,7 @@ def main():
 
         rotated_camera_pos = rotate(camera_pos, camera_angle_x, camera_angle_y, 0)
         # Draw shapes
-        cube.draw(screen, angle_x, angle_y, angle_z, rotated_camera_pos)
+        cube.draw(screen, 0, 0, 0, rotated_camera_pos)
         sphere.draw(screen, angle_x, angle_y, angle_z, rotated_camera_pos)
         pyramid.draw(screen, angle_x, angle_y, angle_z, rotated_camera_pos)
 
